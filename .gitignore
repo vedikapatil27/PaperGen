@@ -172,3 +172,63 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+# Python specific
+*.pyc
+*.pyo
+*.pyd
+__pycache__
+*.so
+*.dylib
+*.egg
+*.egg-info
+dist
+build
+*.log
+
+# Flask specific
+instance/
+.webassets-cache
+
+
+# Ignore image files inside the uploads folder
+/static/uploads/*.jpg
+/static/uploads/*.jpeg
+/static/uploads/*.png
+/static/uploads/*.gif
+
+
+# Virtual environment
+venv/
+env/
+ENV/
+*.env
+
+# Database files
+*.sqlite3
+*.db
+
+# IDE / Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*.swn
+*.sublime-workspace
+*.sublime-project
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Jupyter notebook
+.ipynb_checkpoints
+
+# Python egg metadata
+*.egg
+.eggs/
+*.egg-info/
+
+# Local settings
+*.local
+*.cfg
+*.ini
