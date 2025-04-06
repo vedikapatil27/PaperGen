@@ -71,9 +71,9 @@ python app.py
 
 ---
 
-🌐 Live Demo
-Check out the live version of the app here:
-👉 [Click here to open PaperGen](https://papergen-2ner.onrender.com/)
+## 🌐 Live Demo  
+Check out the live version of the app here:  
+👉 [Click here to open PaperGen](https://papergen-2ner.onrender.com/) 
 
 ---
 
