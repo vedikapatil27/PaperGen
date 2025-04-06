@@ -16,6 +16,7 @@ from werkzeug.utils import secure_filename
 from werkzeug.security import check_password_hash, generate_password_hash
 import jwt
 from datetime import datetime
+from psycopg2.extras import RealDictCursor
 import re
 
 load_dotenv()
@@ -69,7 +70,8 @@ def create_database():
             dbname="postgres",
             user=os.getenv('DB_USER'),
             password=os.getenv('DB_PASSWORD'),
-            host=os.getenv('DB_HOST', 'localhost')
+            host=os.getenv('DB_HOST', 'localhost'),
+            cursor_factory=RealDictCursor
         )
         connection.autocommit = True
         cursor = connection.cursor()
@@ -394,7 +396,7 @@ def login():
                 })
 
             connection = create_connection()
-            cursor = connection.cursor(dictionary=True)
+            cursor = connection.cursor()
 
             cursor.execute("SELECT * FROM users WHERE username = %s", (username,))
             user = cursor.fetchone()
@@ -825,7 +827,7 @@ def fetch_questions():
 
     user_id = session['user_id']
     connection = create_connection()
-    cursor = connection.cursor(dictionary=True)
+    cursor = connection.cursor()
 
     cursor.execute("SELECT question_text FROM questions WHERE user_id = %s", (user_id,))
     questions = [row['question_text'] for row in cursor.fetchall()]
