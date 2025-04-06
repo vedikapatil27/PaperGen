@@ -1,6 +1,6 @@
-# 📚 Question Paper Generator
+# 📚 PaperGen
 
-✨ Welcome to the Question Paper Generator! This project helps you generate question papers for different subjects, branches, and semesters. It allows you to customize the question paper by selecting questions from the database and generating a formatted Word document.
+✨ Welcome to the PaperGen! This project helps you generate question papers for different subjects, branches, and semesters. It allows you to customize the question paper by selecting questions from the database and generating a formatted Word document.
 
 ---
 
