@@ -3,6 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Basic Meta Tags -->
+    <meta name="description" content="Easily generate exam question papers with PaperGen. Quick, smart, and customizable – perfect for teachers and exam coordinators.">
+    <meta name="author" content="Vedika Patil">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://papergen-2ner.onrender.com/">
+    <meta property="og:title" content="PaperGen">
+    <meta property="og:description" content="Easily generate exam question papers with PaperGen. Quick, smart, and customizable – perfect for teachers and exam coordinators.">
+    <meta property="og:image" content="https://papergen-2ner.onrender.com/static/images/PaperGen.png">
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="https://papergen-2ner.onrender.com/">
+    <meta name="twitter:title" content="PaperGen">
+    <meta name="twitter:description" content="Easily generate exam question papers with PaperGen. Quick, smart, and customizable – perfect for teachers and exam coordinators.">
+    <meta name="twitter:image" content="https://papergen-2ner.onrender.com/static/images/PaperGen.png"> 
+
+
     <link rel="icon" type="image/png" href="static/images/favicon.png">
     <title>{% block title %}PaperGen{% endblock %}</title>
     <style>
@@ -86,11 +106,24 @@
 
 
         window.onload = function() {
-            {% if session['username'] %}
-                  sessionStorage.removeItem('username');
 
-                  // Then, set the new value
-                  sessionStorage.setItem('username', '{{ session["username"] }}');
+            console.clear();
+            // Get current year dynamically
+            const year = new Date().getFullYear();
+
+            // Custom message with styling
+            console.log(
+                    `%c Designed and Developed by Vedika Patil © ${year} `,
+                    "background: linear-gradient(to right, #226688,rgb(47, 176, 241)); color: white; font-size: 14px; font-weight: bold; padding: 50px 20px; border-radius: 10px;"
+            );
+            if (!sessionStorage.getItem("Developer")) {
+                  sessionStorage.setItem("Developer", "Vedika Patil");
+            }
+            {% if session['username'] %}
+                sessionStorage.removeItem('username');
+
+                // Then, set the new value
+                sessionStorage.setItem('username', '{{ session["username"] }}');
             {% endif %}
         }
     </script>
