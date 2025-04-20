@@ -257,7 +257,7 @@ def signup():
             connection.commit()
 
             # ✅ Notify the admin about the new user signup
-            notify_random_admin(username, role, request)
+            notify_random_admin(username, role)
 
             return jsonify({
                 'status': 'success',
@@ -333,7 +333,7 @@ def adminsignup():
                 connection.commit()
 
                 send_verification_email(email)  # Send verification email to the new admin
-                notify_random_admin(username, 'Admin', request)  # Notify existing admins about the new admin signup
+                notify_random_admin(username, 'Admin')  # Notify existing admins about the new admin signup
 
                 return jsonify({
                     'status': 'success',
@@ -353,7 +353,7 @@ def adminsignup():
                 connection.close()
 
 
-def notify_random_admin(new_username, new_user_role, request):
+def notify_random_admin(new_username, new_user_role):
     connection = create_connection()
     cursor = connection.cursor()
 
