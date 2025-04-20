@@ -190,7 +190,7 @@ def fetch_random_admin_email():
     try:
         # Create database connection
         connection = create_connection()
-        cursor = connection.cursor(dictionary=True)
+        cursor = connection.cursor()
 
         # Query to fetch all approved admins
         cursor.execute("SELECT email FROM users WHERE role = 'Admin' AND status = 'approved'")
@@ -233,7 +233,7 @@ def signup():
             hashed_password = generate_password_hash(password)
 
             connection = create_connection()
-            cursor = connection.cursor(dictionary=True)
+            cursor = connection.cursor()
 
             # ✅ Check for existing email
             cursor.execute("SELECT * FROM users WHERE email = %s", (email,))
@@ -291,7 +291,7 @@ def adminsignup():
             hashed_password = generate_password_hash(password)
 
             connection = create_connection()
-            cursor = connection.cursor(dictionary=True)
+            cursor = connection.cursor()
 
             # ✅ Check for existing email
             cursor.execute("SELECT * FROM users WHERE email = %s", (email,))
@@ -351,7 +351,7 @@ def adminsignup():
 
 def notify_random_admin(new_username, new_user_role, request):
     connection = create_connection()
-    cursor = connection.cursor(dictionary=True)
+    cursor = connection.cursor()
 
     try:
         # Get all approved admins
