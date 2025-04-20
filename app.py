@@ -160,9 +160,9 @@ def generate_verification_token(email):
         {'email': email, 'exp': datetime.utcnow() + datetime.timedelta(hours=1)},
         app.secret_key, algorithm="HS256"
     )
-
-    # Decode the token to a string (UTF-8)
-    return encoded_token.decode('utf-8')  # Decoding byte string to regular string
+    
+    # Just return the encoded token as a byte string, no need to decode
+    return encoded_token
 
 # ✅ Function to send a verification email
 def send_verification_email(email):
@@ -237,7 +237,7 @@ def signup():
             hashed_password = generate_password_hash(password)
 
             connection = create_connection()
-            cursor = connection.cursor(dictionary=True)
+            cursor = connection.cursor(cursor_factory=RealDictCursor)
 
             # ✅ Check for existing email
             cursor.execute("SELECT * FROM users WHERE email = %s", (email,))
@@ -295,7 +295,7 @@ def adminsignup():
             hashed_password = generate_password_hash(password)
 
             connection = create_connection()
-            cursor = connection.cursor(dictionary=True)
+            cursor = connection.cursor(cursor_factory=RealDictCursor)
 
             # ✅ Check for existing email
             cursor.execute("SELECT * FROM users WHERE email = %s", (email,))
@@ -1138,7 +1138,7 @@ def fetch_questions():
 
     user_id = session['user_id']
     connection = create_connection()
-    cursor = connection.cursor(dictionary=True)
+    cursor = connection.cursor(cursor_factory=RealDictCursor)
 
     cursor.execute("SELECT question_text FROM questions WHERE user_id = %s", (user_id,))
     questions = [row['question_text'] for row in cursor.fetchall()]
