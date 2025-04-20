@@ -15,7 +15,7 @@ import os
 from werkzeug.utils import secure_filename
 from werkzeug.security import check_password_hash, generate_password_hash
 import jwt
-from datetime import datetime
+from datetime import datetime, timedelta
 from psycopg2.extras import RealDictCursor
 import re
 
@@ -156,7 +156,7 @@ def index():
 # ✅ Function to generate a JWT token
 def generate_verification_token(email):
     return jwt.encode(
-        {'email': email, 'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=1)}, 
+        {'email': email, 'exp': datetime.utcnow() + timedelta(hours=1)},
         app.secret_key, algorithm="HS256"
     )
 
