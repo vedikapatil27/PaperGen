@@ -279,7 +279,7 @@ def adminsignup():
     cursor = None
 
     if request.method == 'GET':
-        return render_template('adminsignup.html')  # Admin signup page (HTML for admins)
+        return render_template('adminSignUp.html')  # Admin signup page (HTML for admins)
 
     if request.method == 'POST':
         try:
