@@ -67,8 +67,6 @@ body {
 }
 
 #role[disabled] {
-    background-color: #f1f1f1;
-    color: #ccc;
     pointer-events: none; /* This will also prevent hover/focus effects */
 }
 
