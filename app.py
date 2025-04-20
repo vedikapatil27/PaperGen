@@ -540,7 +540,7 @@ def login():
                 })
 
             connection = create_connection()
-            cursor = connection.cursor(dictionary=True)
+            cursor = connection.cursor(cursor_factory=RealDictCursor)
 
             cursor.execute("SELECT * FROM users WHERE username = %s", (username,))
             user = cursor.fetchone()
