@@ -165,14 +165,54 @@ def send_verification_email(email):
     token = generate_verification_token(email)
     verification_url = url_for('verify_email', token=token, _external=True)
 
-    msg = Message("Verify Your Email", recipients=[email])
-    msg.body = f"Click the link to verify your account: {verification_url}"
+    # 👇 Pass the generated URL to the email body constructor
+    text_body, html_body = construct_verification_email(verification_url)
+
+    msg = Message(
+        subject="Confirm your PaperGen account",
+        recipients=[email]
+    )
+    msg.body = text_body
+    msg.html = html_body
+
     mail.send(msg)
+
 
 def is_valid_password(password):
     """Check if the password meets the security criteria"""
     pattern = re.compile(r"^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{5,}$")
     return pattern.match(password)
+
+def fetch_random_admin_email():
+    connection = None
+    cursor = None
+
+    try:
+        # Create database connection
+        connection = create_connection()
+        cursor = connection.cursor(dictionary=True)
+
+        # Query to fetch all approved admins
+        cursor.execute("SELECT email FROM users WHERE role = 'Admin' AND status = 'approved'")
+        admins = cursor.fetchall()
+
+        if admins:
+            # Randomly select an admin email
+            random_admin = random.choice(admins)
+            return random_admin['email']
+        else:
+            # Return None if no admins are available
+            return None
+
+    except Exception as e:
+        print(f"Error fetching random admin: {e}")
+        return None
+
+    finally:
+        if cursor:
+            cursor.close()
+        if connection:
+            connection.close()
 
 @app.route('/signup', methods=['GET', 'POST', 'OPTIONS'])
 def signup():
@@ -180,82 +220,167 @@ def signup():
     cursor = None
 
     if request.method == 'GET':
-        return render_template('signup.html')  # ✅ Serve signup page
+        return render_template('signup.html')  # Regular user signup page
 
     if request.method == 'POST':
         try:
-            data = request.get_json()  # ✅ Accept JSON input
-            # print(data)
+            data = request.get_json()
             username = data.get('username')
             email = data.get('email')
             password = data.get('password')
-            role = data.get('role')
+            role = data.get('role')  # Here, we expect 'role' to always be 'User' or some non-admin role
 
+            hashed_password = generate_password_hash(password)
 
-            hashed_password = generate_password_hash(password)  # ✅ Hash password before storing
-
-            # ✅ Create database connection
             connection = create_connection()
-            cursor = connection.cursor()
+            cursor = connection.cursor(dictionary=True)
 
-            # ✅ Check if the email already exists
+            # ✅ Check for existing email
             cursor.execute("SELECT * FROM users WHERE email = %s", (email,))
-            existing_user = cursor.fetchone()
+            if cursor.fetchone():
+                return jsonify({'status': 'error', 'message': 'Email already exists. Please use a different email.'})
 
-            if existing_user:
-                return jsonify({
-                    'status': 'error',
-                    'message': 'Email already exists. Please use a different email.'
-                })
-                
-            # ✅ Check if username already exists
+            # ✅ Check for existing username
             cursor.execute("SELECT * FROM users WHERE username = %s", (username,))
-            existing_username = cursor.fetchone()
-            if existing_username:
-                return jsonify({
-                    'status': 'error',
-                    'message': 'Username is already taken. Please choose a different username.'
-                })
+            if cursor.fetchone():
+                return jsonify({'status': 'error', 'message': 'Username is already taken. Please choose a different username.'})
 
-            # ✅ Insert new user if email is not found
-            if role == "Admin":
-                cursor.execute("INSERT INTO users (username, email, password, role, is_verified) VALUES (%s, %s, %s, %s, %s)", 
-                               (username, email, hashed_password, role, False))
-                connection.commit()
+            # ✅ Insert regular user (non-admin)
+            cursor.execute("""
+                INSERT INTO users (username, email, password, role, is_verified, status)
+                VALUES (%s, %s, %s, %s, %s, %s)
+            """, (username, email, hashed_password, role, False, 'pending'))
+            connection.commit()
 
-                # ✅ Send verification email (optional)
-                send_verification_email(email)
+            # ✅ Notify the admin about the new user signup
+            notify_random_admin(username, role, request)
 
-                return jsonify({
-                    'status': 'success',
-                    'message': 'A verification email has been sent. Please check your inbox.'
-                })
-            else:
-                cursor.execute("INSERT INTO users (username, email, password, role, is_verified) VALUES (%s, %s, %s, %s, %s)", 
-                               (username, email, hashed_password, role, True))
-                connection.commit()
-
-                return jsonify({
-                    'status': 'success',
-                    'message': 'Signup successful! Please log in.'
-                })
+            return jsonify({
+                'status': 'success',
+                'message': 'Signup successful. Please wait for admin approval.'
+            })
 
         except Exception as e:
-            # print(e)
             return jsonify({
                 'status': 'error',
-                'message': 'An error occurred during signup. Please try again.'
+                'message': f'An error occurred during signup. Please try again. {str(e)}'
             })
 
         finally:
-            # ✅ Close cursor and connection only if they were successfully initialized
             if cursor:
                 cursor.close()
             if connection:
                 connection.close()
 
 
+@app.route('/adminsignup', methods=['GET', 'POST', 'OPTIONS'])
+def adminsignup():
+    connection = None
+    cursor = None
 
+    if request.method == 'GET':
+        return render_template('adminsignup.html')  # Admin signup page (HTML for admins)
+
+    if request.method == 'POST':
+        try:
+            data = request.get_json()
+            username = data.get('username')
+            email = data.get('email')
+            password = data.get('password')
+
+            hashed_password = generate_password_hash(password)
+
+            connection = create_connection()
+            cursor = connection.cursor(dictionary=True)
+
+            # ✅ Check for existing email
+            cursor.execute("SELECT * FROM users WHERE email = %s", (email,))
+            if cursor.fetchone():
+                return jsonify({'status': 'error', 'message': 'Email already exists. Please use a different email.'})
+
+            # ✅ Check for existing username
+            cursor.execute("SELECT * FROM users WHERE username = %s", (username,))
+            if cursor.fetchone():
+                return jsonify({'status': 'error', 'message': 'Username is already taken. Please choose a different username.'})
+
+            # ✅ Check if this is the first admin
+            cursor.execute("SELECT * FROM users WHERE role = 'Admin' AND status = 'approved' LIMIT 1")
+            existing_admin = cursor.fetchone()
+
+            if not existing_admin:  # First admin signup
+                cursor.execute("""
+                    INSERT INTO users (username, email, password, role, is_verified, status)
+                    VALUES (%s, %s, %s, %s, %s, %s)
+                """, (username, email, hashed_password, 'Admin', True, 'approved'))
+                connection.commit()
+
+                send_verification_email(email)  # Send verification email to the first admin
+
+                return jsonify({
+                    'status': 'success',
+                    'message': 'You are the first admin. Your account is approved and a verification email has been sent.'
+                })
+
+            else:  # Subsequent admin signup (pending)
+                cursor.execute("""
+                    INSERT INTO users (username, email, password, role, is_verified, status)
+                    VALUES (%s, %s, %s, %s, %s, %s)
+                """, (username, email, hashed_password, 'Admin', False, 'pending'))
+                connection.commit()
+
+                send_verification_email(email)  # Send verification email to the new admin
+                notify_random_admin(username, 'Admin', request)  # Notify existing admins about the new admin signup
+
+                return jsonify({
+                    'status': 'success',
+                    'message': 'Signup successful. Your account is pending approval. Please check your inbox.'
+                })
+
+        except Exception as e:
+            return jsonify({
+                'status': 'error',
+                'message': f'An error occurred during signup. Please try again. {str(e)}'
+            })
+
+        finally:
+            if cursor:
+                cursor.close()
+            if connection:
+                connection.close()
+
+
+def notify_random_admin(new_username, new_user_role, request):
+    connection = create_connection()
+    cursor = connection.cursor(dictionary=True)
+
+    try:
+        # Get all approved admins
+        cursor.execute("SELECT email FROM users WHERE role = 'Admin' AND status = 'approved'")
+        admins = cursor.fetchall()
+
+        if admins:
+            # Pick one randomly
+            selected_admin = random.choice(admins)
+            admin_email = selected_admin['email']
+
+            # Generate email content
+            subject = f"New {new_user_role} Signup Request"
+            text_body, html_body = construct_admin_notification_email(new_username, admin_email, new_user_role)
+
+            # Create message object
+            msg = Message(
+                subject=subject,
+                recipients=[admin_email]
+            )
+            msg.body = text_body
+            msg.html = html_body
+
+            # Send the email
+            mail.send(msg)
+
+    finally:
+        cursor.close()
+        connection.close()
 
 @app.route('/admin_user')
 def admin_user():
@@ -296,14 +421,29 @@ def update_user_status():
 
     connection = create_connection()
     cursor = connection.cursor()
-    
-    cursor.execute("UPDATE users SET status = %s WHERE id = %s", (new_status, user_id))
-    connection.commit()
-    
-    cursor.close()
-    connection.close()
 
-    return jsonify({"message": f"User status updated to {new_status}."})
+    try:
+        # ✅ Update user status
+        cursor.execute("UPDATE users SET status = %s WHERE id = %s", (new_status, user_id))
+        connection.commit()
+
+        # ✅ Send approval email only if status is approved
+        if new_status == "approved":
+            cursor.execute("SELECT email, username FROM users WHERE id = %s", (user_id,))
+            user = cursor.fetchone()
+
+            if user:
+                email, username = user
+                send_user_approval_email(email, username)
+
+        return jsonify({"message": f"User status updated to {new_status}."})
+
+    except Exception as e:
+        return jsonify({"error": f"An error occurred: {str(e)}"}), 500
+
+    finally:
+        cursor.close()
+        connection.close()
 
 
 
@@ -448,8 +588,175 @@ def login_required(f):
 def protected_route():
     return "You are logged in!"
 
+def send_user_approval_email(email, username):
+    login_url = url_for('login', _external=True)
 
+    # Plain text version
+    text_body = f"""
+    Hi {username},
 
+    Your account has been approved! 🎉
+    You can now log in and explore the platform.
+
+    Login here: {login_url}
+
+    Best regards,  
+    The PaperGen Team
+    """
+
+    # HTML version
+    html_body = f"""
+    <html>
+    <body>
+        <p>Hi <strong>{username}</strong>,</p>
+        <p>Your account has been <strong>approved</strong>! 🎉</p>
+        <p>You can now <a href="{login_url}" target="_blank">log in</a> and explore the platform.</p>
+        <br>
+        <p>Best regards,<br><strong>The PaperGen Team</strong></p>
+    </body>
+    </html>
+    """
+
+    # Construct and send the message
+    msg = Message(
+        subject="Your PaperGen account is now active!",
+        recipients=[email],
+        body=text_body,
+        html=html_body
+    )
+
+    mail.send(msg)
+    
+    
+def construct_admin_notification_email(username, email, role):
+    # Get the full URL to the admin_user page
+    admin_user_url = url_for('admin_user', _external=True)
+
+    # Email subject could be based on the role
+    role_display = role.capitalize()
+
+    # Plain text email body
+    text_body = f"""
+A new {role_display} account has been requested and is currently in a pending state.
+
+Username: {username}
+Email: {email}
+
+Please log in to the admin dashboard to approve or reject the request:
+{admin_user_url}
+
+Best regards,
+Your System
+"""
+
+    # HTML email body
+    html_body = f"""
+<html>
+<body>
+    <p>A new <strong>{role_display}</strong> account request is currently in a <strong>pending</strong> state.</p>
+    <p><strong>Username:</strong> {username}</p>
+    <p><strong>Email:</strong> {email}</p>
+    <p>Please <a href="{admin_user_url}" target="_blank">log in</a> to the admin dashboard to approve or reject the request.</p>
+    <br>
+    <p>Best regards,<br>Your System</p>
+</body>
+</html>
+"""
+
+    return text_body, html_body
+def construct_verification_email(verification_url):
+    current_year = datetime.now().year
+
+    # Plain text version
+    text = f"""
+Hi,
+
+Welcome to PaperGen! Please verify your email address by clicking the link below:
+
+{verification_url}
+
+⚠️ This link will expire in 1 hour.
+
+If you didn’t create a PaperGen account, you can safely ignore this email.
+
+Thanks,
+The PaperGen Team
+
+© {current_year} PaperGen. All rights reserved.
+"""
+
+    # HTML version
+    html = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <style>
+            body {{
+                font-family: Arial, sans-serif;
+                background-color: #f9f9f9;
+                margin: 0;
+                padding: 20px;
+                color: #333;
+            }}
+            .container {{
+                max-width: 600px;
+                background-color: #ffffff;
+                padding: 20px;
+                border-radius: 8px;
+                box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+                margin: 0 auto;
+            }}
+            h1 {{
+                color: #4CAF50;
+                text-align: center;
+            }}
+            p {{
+                font-size: 16px;
+            }}
+            .button {{
+                display: block;
+                width: fit-content;
+                background-color: #4CAF50;
+                color: #fff;
+                padding: 12px 24px;
+                border-radius: 5px;
+                font-size: 16px;
+                font-weight: bold;
+                text-align: center;
+                text-decoration: none;
+                margin: 20px auto;
+            }}
+            .footer {{
+                font-size: 14px;
+                color: #777;
+                text-align: center;
+                margin-top: 30px;
+            }}
+            .note {{
+                font-size: 14px;
+                color: #999;
+                text-align: center;
+                margin-top: 15px;
+            }}
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>Verify Your Email</h1>
+            <p>Hi there,</p>
+            <p>Thanks for signing up for PaperGen! To get started, please confirm your email address by clicking the button below</p>
+            <a href="{verification_url}" class="button">Verify Email</a>
+            <p class="note">⚠️ This link will expire in 1 hour.</p>
+            <p>If you didn’t sign up, you can safely ignore this email.</p>
+            <div class="footer">
+                © {current_year} PaperGen. All rights reserved.
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+
+    return text, html
 
 # Function to construct the email content
 def construct_email(otp):

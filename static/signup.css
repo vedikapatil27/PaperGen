@@ -66,6 +66,12 @@ body {
     z-index: 1;
 }
 
+#role[disabled] {
+    background-color: #f1f1f1;
+    color: #ccc;
+    pointer-events: none; /* This will also prevent hover/focus effects */
+}
+
 /* Ensure all input fields and select have the same background color */
 .input-field input,
 .input-field select {
@@ -190,6 +196,85 @@ input[type="password"] {
     color: #fc8181;
     font-size: 12px;
     margin-top: 5px;
+}
+
+/* New styles for validation requirements */
+.validation-requirements {
+    background: #1a202c;
+    border-radius: 10px;
+    padding: 15px;
+    margin-bottom: 20px;
+    color: #a0aec0;
+    font-size: 14px;
+    border: 1px solid #4a5568;
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    transition: max-height 0.5s ease, opacity 0.5s ease, padding 0.5s ease, margin 0.5s ease;
+}
+
+.validation-requirements.show {
+    max-height: 300px;
+    opacity: 1;
+    padding: 15px;
+    margin-bottom: 20px;
+}
+
+.validation-requirements h4 {
+    margin-bottom: 10px;
+    color: #e2e8f0;
+    font-size: 15px;
+}
+
+.validation-requirements ul {
+    list-style: none;
+    padding-left: 5px;
+}
+
+.validation-requirements li, 
+.validation-requirements div {
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    transition: color 0.3s ease;
+}
+
+.validation-requirements i {
+    margin-right: 10px;
+    transition: all 0.3s ease;
+}
+
+.validation-requirements .fa-times-circle {
+    color: #fc8181;
+}
+
+.validation-requirements .fa-check-circle {
+    color: #68d391;
+}
+
+.validation-icon {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 2;
+    transition: all 0.3s ease;
+}
+
+.validation-icon.valid {
+    color: #68d391;
+}
+
+.validation-icon.invalid {
+    color: #fc8181;
+}
+
+.hidden {
+    display: none;
+}
+
+.valid-text {
+    color: #68d391;
 }
 
 @media (max-width: 480px) {

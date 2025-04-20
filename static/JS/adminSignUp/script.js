@@ -240,7 +240,7 @@ document.addEventListener('DOMContentLoaded', function () {
             role: roleSelect.value
         };
 
-        fetch('/signup', {
+        fetch('/adminsignup', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'

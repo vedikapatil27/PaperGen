@@ -23,7 +23,7 @@
     <meta name="twitter:image" content="static/images/PaperGen.png"> 
 
 
-    <link rel="icon" type="image/png" href="static/images/Favicon.png">
+    <link rel="icon" type="image/png" href="static/images/favicon.png">
     <title>{% block title %}PaperGen{% endblock %}</title>
     <style>
         /* Flash Message Styling */
@@ -106,19 +106,6 @@
 
 
         window.onload = function() {
-
-            console.clear();
-            // Get current year dynamically
-            const year = new Date().getFullYear();
-
-            // Custom message with styling
-            console.log(
-                    `%c Designed and Developed by Vedika Patil © ${year} `,
-                    "background: linear-gradient(to right, #226688,rgb(47, 176, 241)); color: white; font-size: 14px; font-weight: bold; padding: 50px 20px; border-radius: 10px;"
-            );
-            if (!sessionStorage.getItem("Developer")) {
-                  sessionStorage.setItem("Developer", "Vedika Patil");
-            }
             {% if session['username'] %}
                 sessionStorage.removeItem('username');
 
