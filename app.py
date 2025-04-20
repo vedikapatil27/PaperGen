@@ -157,7 +157,7 @@ def index():
 def generate_verification_token(email):
     # Generate JWT token
     encoded_token = jwt.encode(
-        {'email': email, 'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=1)},
+        {'email': email, 'exp': datetime.utcnow() + datetime.timedelta(hours=1)},
         app.secret_key, algorithm="HS256"
     )
 
