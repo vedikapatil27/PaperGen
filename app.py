@@ -237,7 +237,7 @@ def signup():
             hashed_password = generate_password_hash(password)
 
             connection = create_connection()
-            cursor = connection.cursor()
+            cursor = connection.cursor(dictionary=True)
 
             # ✅ Check for existing email
             cursor.execute("SELECT * FROM users WHERE email = %s", (email,))
@@ -295,7 +295,7 @@ def adminsignup():
             hashed_password = generate_password_hash(password)
 
             connection = create_connection()
-            cursor = connection.cursor()
+            cursor = connection.cursor(dictionary=True)
 
             # ✅ Check for existing email
             cursor.execute("SELECT * FROM users WHERE email = %s", (email,))
@@ -540,7 +540,7 @@ def login():
                 })
 
             connection = create_connection()
-            cursor = connection.cursor()
+            cursor = connection.cursor(dictionary=True)
 
             cursor.execute("SELECT * FROM users WHERE username = %s", (username,))
             user = cursor.fetchone()
@@ -1138,7 +1138,7 @@ def fetch_questions():
 
     user_id = session['user_id']
     connection = create_connection()
-    cursor = connection.cursor()
+    cursor = connection.cursor(dictionary=True)
 
     cursor.execute("SELECT question_text FROM questions WHERE user_id = %s", (user_id,))
     questions = [row['question_text'] for row in cursor.fetchall()]
