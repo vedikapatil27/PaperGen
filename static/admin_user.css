@@ -419,6 +419,18 @@ ul {
     box-shadow: 0 5px 15px rgba(246, 224, 94, 0.4);
 }
 
+.delete-btn {
+    background-color: rgba(252, 129, 129, 0.2);
+    color: var(--error-color);
+}
+
+.delete-btn:hover {
+    background-color: var(--error-color);
+    color: white;
+    transform: scale(1.1);
+    box-shadow: 0 5px 15px rgba(252, 129, 129, 0.4);
+}
+
 
 /* Subject List Styles */
 .subject-list {

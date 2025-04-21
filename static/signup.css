@@ -66,9 +66,8 @@ body {
     z-index: 1;
 }
 
-#role[disabled] {
-    background-color: #f1f1f1;
-    color: #ccc;
+.role-select {
+    cursor: not-allowed;
     pointer-events: none; /* This will also prevent hover/focus effects */
 }
 

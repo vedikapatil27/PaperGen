@@ -15,7 +15,7 @@ import os
 from werkzeug.utils import secure_filename
 from werkzeug.security import check_password_hash, generate_password_hash
 import jwt
-from datetime import datetime
+from datetime import datetime, timedelta
 from psycopg2.extras import RealDictCursor
 import re
 
@@ -155,27 +155,37 @@ def index():
 
 # ✅ Function to generate a JWT token
 def generate_verification_token(email):
-    return jwt.encode(
-        {'email': email, 'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=1)}, 
-        app.secret_key, algorithm="HS256"
+    # Generate JWT token with expiration of 1 hour
+    encoded_token = jwt.encode(
+        {'email': email, 'exp': datetime.utcnow() + timedelta(hours=1)},
+        app.secret_key,
+        algorithm="HS256"
     )
+
+    # Ensure it's a string (decode only if needed)
+    return encoded_token if isinstance(encoded_token, str) else encoded_token.decode('utf-8')
 
 # ✅ Function to send a verification email
 def send_verification_email(email):
-    token = generate_verification_token(email)
-    verification_url = url_for('verify_email', token=token, _external=True)
+    try:
+        token = generate_verification_token(email)
+        verification_url = url_for('verify_email', token=token, _external=True)
 
-    # 👇 Pass the generated URL to the email body constructor
-    text_body, html_body = construct_verification_email(verification_url)
+        text_body, html_body = construct_verification_email(verification_url)
 
-    msg = Message(
-        subject="Confirm your PaperGen account",
-        recipients=[email]
-    )
-    msg.body = text_body
-    msg.html = html_body
+        msg = Message(
+            subject="Confirm your PaperGen account",
+            recipients=[email]
+        )
+        msg.body = text_body
+        msg.html = html_body
 
-    mail.send(msg)
+        mail.send(msg)
+
+    except Exception as e:
+        print("💥 Error while sending email:", e)
+        raise  # re-raise to see full stack trace
+
 
 
 def is_valid_password(password):
@@ -190,7 +200,7 @@ def fetch_random_admin_email():
     try:
         # Create database connection
         connection = create_connection()
-        cursor = connection.cursor(dictionary=True)
+        cursor = connection.cursor()
 
         # Query to fetch all approved admins
         cursor.execute("SELECT email FROM users WHERE role = 'Admin' AND status = 'approved'")
@@ -233,7 +243,7 @@ def signup():
             hashed_password = generate_password_hash(password)
 
             connection = create_connection()
-            cursor = connection.cursor(dictionary=True)
+            cursor = connection.cursor(cursor_factory=RealDictCursor)
 
             # ✅ Check for existing email
             cursor.execute("SELECT * FROM users WHERE email = %s", (email,))
@@ -253,7 +263,7 @@ def signup():
             connection.commit()
 
             # ✅ Notify the admin about the new user signup
-            notify_random_admin(username, role, request)
+            notify_random_admin(username, role)
 
             return jsonify({
                 'status': 'success',
@@ -279,7 +289,7 @@ def adminsignup():
     cursor = None
 
     if request.method == 'GET':
-        return render_template('adminsignup.html')  # Admin signup page (HTML for admins)
+        return render_template('adminSignUp.html')  # Admin signup page (HTML for admins)
 
     if request.method == 'POST':
         try:
@@ -291,7 +301,7 @@ def adminsignup():
             hashed_password = generate_password_hash(password)
 
             connection = create_connection()
-            cursor = connection.cursor(dictionary=True)
+            cursor = connection.cursor(cursor_factory=RealDictCursor)
 
             # ✅ Check for existing email
             cursor.execute("SELECT * FROM users WHERE email = %s", (email,))
@@ -329,7 +339,7 @@ def adminsignup():
                 connection.commit()
 
                 send_verification_email(email)  # Send verification email to the new admin
-                notify_random_admin(username, 'Admin', request)  # Notify existing admins about the new admin signup
+                notify_random_admin(username, 'Admin')  # Notify existing admins about the new admin signup
 
                 return jsonify({
                     'status': 'success',
@@ -349,9 +359,9 @@ def adminsignup():
                 connection.close()
 
 
-def notify_random_admin(new_username, new_user_role, request):
+def notify_random_admin(new_username, new_user_role):
     connection = create_connection()
-    cursor = connection.cursor(dictionary=True)
+    cursor = connection.cursor()
 
     try:
         # Get all approved admins
@@ -536,7 +546,7 @@ def login():
                 })
 
             connection = create_connection()
-            cursor = connection.cursor()
+            cursor = connection.cursor(cursor_factory=RealDictCursor)
 
             cursor.execute("SELECT * FROM users WHERE username = %s", (username,))
             user = cursor.fetchone()
@@ -1134,7 +1144,7 @@ def fetch_questions():
 
     user_id = session['user_id']
     connection = create_connection()
-    cursor = connection.cursor()
+    cursor = connection.cursor(cursor_factory=RealDictCursor)
 
     cursor.execute("SELECT question_text FROM questions WHERE user_id = %s", (user_id,))
     questions = [row['question_text'] for row in cursor.fetchall()]
@@ -1270,6 +1280,37 @@ def update_question():
         conn.close()
 
 
+
+@app.route('/delete_user/<int:user_id>', methods=['DELETE'])
+def delete_user(user_id):
+    if 'user_id' not in session:
+        return jsonify({"message": "Unauthorized"}), 401
+
+    connection = create_connection()
+    cursor = connection.cursor()
+
+    try:
+        # Optional: check if user exists
+        cursor.execute("SELECT * FROM users WHERE id = %s", (user_id,))
+        if cursor.fetchone() is None:
+            cursor.close()
+            connection.close()
+            return jsonify({"message": "User not found"}), 404
+
+        # Delete user
+        cursor.execute("DELETE FROM users WHERE id = %s", (user_id,))
+        connection.commit()
+
+        cursor.close()
+        connection.close()
+        return jsonify({"message": "User has been deleted successfully."}), 200
+
+    except Exception as e:
+        print("Error deleting user:", e)
+        connection.rollback()
+        cursor.close()
+        connection.close()
+        return jsonify({"message": "An error occurred while deleting the user."}), 500
 
 
 

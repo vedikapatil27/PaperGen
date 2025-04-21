@@ -408,11 +408,14 @@ function createUserCard(user) {
           `
     } else if (user[4] === "rejected") {
         userActions.innerHTML = `
-              <button class="action-btn restore-btn" onclick="handleUserAction(${user[0]}, 'restore')">
-                  <i class="fas fa-undo"></i>
-              </button>
-          `
-    }
+          <button class="action-btn restore-btn" onclick="handleUserAction(${user[0]}, 'restore')">
+              <i class="fas fa-undo"></i>
+          </button>
+          <button class="action-btn delete-btn" onclick="deleteUserAttachment(${user[0]})">
+              <i class="fas fa-trash"></i>
+          </button>
+      `
+}
 
     card.appendChild(userInfo)
     card.appendChild(userActions)
@@ -487,3 +490,53 @@ function handleUserAction(userId, action) {
             })
         })
 }  
+
+// Function to delete user attachment
+function deleteUserAttachment(userId) {
+    Swal.fire({
+        title: "Are you sure?",
+        text: "This will permanently delete the user!",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#3182ce",
+        cancelButtonColor: "#fc8181",
+        confirmButtonText: "Yes, delete it!"
+    }).then((result) => {
+        if (result.isConfirmed) {
+            fetch(`/delete_user/${userId}`, {
+                method: "DELETE",
+            })
+                .then((response) => {
+                    if (!response.ok) {
+                        throw new Error("Failed to delete user");
+                    }
+                    return response.json();
+                })
+                .then((data) => {
+                    Swal.fire({
+                        position: "top-end",
+                        icon: "success",
+                        title: "Deleted!",
+                        text: data.message,
+                        showConfirmButton: false,
+                        toast: true,
+                        timer: 2000,
+                    });
+                    // Refresh the users list
+                    fetchUsers();
+                })
+                .catch((error) => {
+                    console.error("Error deleting user attachment:", error);
+                    Swal.fire({
+                        position: "top-end",
+                        icon: "error",
+                        title: "Error",
+                        text: "Failed to delete user. Please try again.",
+                        showConfirmButton: false,
+                        toast: true,
+                        timer: 3000,
+                    });
+                });
+        }
+    });
+}
