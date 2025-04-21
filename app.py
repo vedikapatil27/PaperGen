@@ -155,15 +155,10 @@ def index():
 
 # ✅ Function to generate a JWT token
 def generate_verification_token(email):
-    # Generate JWT token with expiration of 1 hour
-    encoded_token = jwt.encode(
-        {'email': email, 'exp': datetime.utcnow() + timedelta(hours=1)},
-        app.secret_key,
-        algorithm="HS256"
+    return jwt.encode(
+        {'email': email, 'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=1)}, 
+        app.secret_key, algorithm="HS256"
     )
-
-    # Ensure it's a string (decode only if needed)
-    return encoded_token if isinstance(encoded_token, str) else encoded_token.decode('utf-8')
 
 # ✅ Function to send a verification email
 def send_verification_email(email):
