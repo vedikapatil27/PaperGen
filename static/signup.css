@@ -251,23 +251,6 @@ input[type="password"] {
     color: #68d391;
 }
 
-.validation-icon {
-    position: absolute;
-    right: 15px;
-    top: 50%;
-    transform: translateY(-50%);
-    z-index: 2;
-    transition: all 0.3s ease;
-}
-
-.validation-icon.valid {
-    color: #68d391;
-}
-
-.validation-icon.invalid {
-    color: #fc8181;
-}
-
 .hidden {
     display: none;
 }

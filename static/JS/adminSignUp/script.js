@@ -17,9 +17,6 @@ document.addEventListener('DOMContentLoaded', function () {
     const passwordsMatchRequirement = document.querySelector('#passwords-match-requirement');
     
     // Validation icons
-    const usernameValidationIcon = document.querySelector('#username-validation-icon');
-    const passwordValidationIcon = document.querySelector('#password-validation-icon');
-    const confirmPasswordValidationIcon = document.querySelector('#confirm-password-validation-icon');
 
     // Add toggle password visibility functionality
     passwordFields.forEach(passwordInput => {
@@ -98,16 +95,6 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         
         // Update validation icon next to input
-        if (username) {
-            usernameValidationIcon.innerHTML = isValid ? 
-                '<i class="fas fa-check-circle"></i>' : 
-                '<i class="fas fa-times-circle"></i>';
-            usernameValidationIcon.className = isValid ? 
-                'validation-icon valid' : 
-                'validation-icon invalid';
-        } else {
-            usernameValidationIcon.innerHTML = '';
-        }
         
         return isValid;
     }
@@ -130,16 +117,6 @@ document.addEventListener('DOMContentLoaded', function () {
         
         // Update validation icon next to input
         const isValid = hasLength && hasUppercase && hasNumber && hasSpecial;
-        if (password) {
-            passwordValidationIcon.innerHTML = isValid ? 
-                '<i class="fas fa-check-circle"></i>' : 
-                '<i class="fas fa-times-circle"></i>';
-            passwordValidationIcon.className = isValid ? 
-                'validation-icon valid' : 
-                'validation-icon invalid';
-        } else {
-            passwordValidationIcon.innerHTML = '';
-        }
         
         return isValid;
     }
@@ -161,16 +138,6 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         
         // Update validation icon next to input
-        if (confirmPassword) {
-            confirmPasswordValidationIcon.innerHTML = doMatch ? 
-                '<i class="fas fa-check-circle"></i>' : 
-                '<i class="fas fa-times-circle"></i>';
-            confirmPasswordValidationIcon.className = doMatch ? 
-                'validation-icon valid' : 
-                'validation-icon invalid';
-        } else {
-            confirmPasswordValidationIcon.innerHTML = '';
-        }
         
         return doMatch;
     }
