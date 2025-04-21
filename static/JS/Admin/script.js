@@ -383,11 +383,17 @@ function createUserCard(user) {
       <p><strong>Email:</strong> ${user[2]}</p>
       <p><strong>Role:</strong> ${user[3]}</p>
       <p>
-          <strong>Status:</strong>
-          <span class="status-badge status-${user[4]}">${user[4]}</span>
-          ${user[5] ? '<span class="status-badge status-approved">Email Verified</span>' : '<span class="status-badge status-pending">Email Not Verified</span>'}
-      </p>
-  `
+         <strong>Status:</strong>
+         <span class="status-badge status-${user[4]}">${user[4]}</span>
+     </p>
+     <p>
+         <strong>Verification:</strong>
+         ${user[5]
+           ? '<span class="status-badge status-approved">Email Verified</span>'
+           : '<span class="status-badge status-pending">Email Not Verified</span>'}
+     </p>
+    `;
+
 
     const userActions = document.createElement("div")
     userActions.className = "user-actions"
