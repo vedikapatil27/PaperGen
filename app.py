@@ -357,7 +357,7 @@ def adminsignup():
 
 def notify_random_admin(new_username, new_user_role):
     connection = create_connection()
-    cursor = connection.cursor()
+    cursor = connection.cursor(cursor_factory=RealDictCursor)  # Use RealDictCursor for dict-style rows
 
     try:
         # Get all approved admins
@@ -367,7 +367,7 @@ def notify_random_admin(new_username, new_user_role):
         if admins:
             # Pick one randomly
             selected_admin = random.choice(admins)
-            admin_email = selected_admin['email']
+            admin_email = selected_admin['email']  # This works with RealDictCursor
 
             # Generate email content
             subject = f"New {new_user_role} Signup Request"
