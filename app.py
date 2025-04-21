@@ -403,7 +403,7 @@ def admin_user():
 def get_users():
     connection = create_connection()
     cursor = connection.cursor()
-    cursor.execute("SELECT id, username, email, role, status FROM users")
+    cursor.execute("SELECT id, username, email, role, status, is_verified FROM users")
     users = cursor.fetchall()
     cursor.close()
     connection.close()
@@ -527,7 +527,7 @@ def verify_email(token):
 @app.route('/login', methods=['GET', 'POST', 'OPTIONS'])
 def login():
     if request.method == 'GET':
-        return render_template('login.html')  # ✅ Handle GET request and serve login page
+        return render_template('login.html')  # ✅ Serve login page
 
     if request.method == 'POST':
         try:
@@ -549,8 +549,12 @@ def login():
 
             if user and check_password_hash(user['password'], password):
                 if user['status'] == 'approved':
+                    if not user['is_verified']:
+                        return jsonify({'status': 'error', 'message': 'Please verify your email before logging in.'})
+
                     session['user_id'] = user['id']
-                    session['username'] = user['username']  # Store the username
+                    session['username'] = user['username']
+
                     redirect_url = url_for('add_question') if user['role'] == 'Teacher' else \
                                    url_for('generate_question_paper') if user['role'] == 'Higher Authority' else \
                                    url_for('admin_user')
@@ -560,6 +564,7 @@ def login():
                         'message': 'Login successful!',
                         'redirect_url': redirect_url
                     })
+
                 elif user['status'] == 'pending':
                     return jsonify({'status': 'error', 'message': 'Your account is pending approval.'})
                 elif user['status'] == 'rejected':
