@@ -165,7 +165,7 @@ def generate_verification_token(email):
 def send_verification_email(email):
     try:
         token = generate_verification_token(email)
-        verification_url = url_for('verify_email', token=token, _external=True)
+        verification_url = url_for('render_verify_email_page', token=token, _external=True)
 
         text_body, html_body = construct_verification_email(verification_url)
 
@@ -259,6 +259,7 @@ def signup():
             connection.commit()
 
             # ✅ Notify the admin about the new user signup
+            send_verification_email(email)
             notify_random_admin(username, role)
 
             return jsonify({
@@ -501,6 +502,9 @@ def create_subject():
         return jsonify({"success": False, "message": "Failed to create subject. Please try again later."}), 500
 
 
+@app.route('/verify-email-page', methods=['GET'])
+def render_verify_email_page():
+    return render_template('verify_email.html')
 
 
 @app.route('/verify-email/<token>')
