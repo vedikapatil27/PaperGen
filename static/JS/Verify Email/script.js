@@ -71,19 +71,13 @@ document.addEventListener("DOMContentLoaded", () => {
   
               // Show success message with SweetAlert2
               Swal.fire({
-                icon: "success",
-                title: "Email Verified!",
-                text: "Your email has been successfully verified.",
-                confirmButtonColor: "#3182ce",
-                timer: 3000,
-                timerProgressBar: true,
-                showClass: {
-                  popup: "animate__animated animate__fadeInUp",
-                },
-                hideClass: {
-                  popup: "animate__animated animate__fadeOutDown",
-                },
-              }).then(() => {
+                position: 'top-end',
+                icon: 'success', // 'success' or 'error'
+                title: 'Your email has been successfully verified.',
+                toast: true,
+                showConfirmButton: false,
+                timer: 2000
+            }).then(() => {
                 // Redirect to login page
                 window.location.href = "/login"
               })
@@ -99,17 +93,13 @@ document.addEventListener("DOMContentLoaded", () => {
   
               // Show error message with SweetAlert2
               Swal.fire({
-                icon: "error",
-                title: "Verification Failed",
-                text: data.message || "There was an error verifying your email.",
-                confirmButtonColor: "#3182ce",
-                showClass: {
-                  popup: "animate__animated animate__fadeInDown",
-                },
-                hideClass: {
-                  popup: "animate__animated animate__fadeOut",
-                },
-              })
+                position: 'top-end',
+                icon: 'error', // 'success' or 'error'
+                title: data.message,
+                toast: true,
+                showConfirmButton: false,
+                timer: 2000
+            });
             }
           })
           .catch((error) => {
@@ -122,18 +112,17 @@ document.addEventListener("DOMContentLoaded", () => {
   
             // Show error message with SweetAlert2
             Swal.fire({
-              icon: "error",
-              title: "Network Error",
-              text: "Could not connect to the server. Please try again later.",
-              confirmButtonColor: "#3182ce",
-              showClass: {
-                popup: "animate__animated animate__shakeX",
-              },
-            })
+                position: 'top-end',
+                icon: 'error', // 'success' or 'error'
+                title: 'Could not connect to the server. Please try again later.',
+                toast: true,
+                showConfirmButton: false,
+                timer: 2000
+            });
   
-            console.error("Error:", error)
+            //console.error("Error:", error)
           })
-      }, 1500) // Simulate network delay
+      }, 2000) // Simulate network delay
     }
   
     // Add button hover effects
