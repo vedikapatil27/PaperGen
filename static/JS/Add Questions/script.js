@@ -133,6 +133,21 @@ form.addEventListener('submit', (e) => {
         return;
     }
 
+
+    const marksValue = parseInt(marks);
+    if (isNaN(marksValue) || marksValue < 1 || marksValue > 12) {
+       Swal.fire({
+           position: 'top-end',
+           icon: 'warning',
+           title: 'Invalid Marks!',
+           text: 'Marks must be between 1 and 17.',
+           toast: true,
+           showConfirmButton: false,
+           timer: 2000
+        });
+    return;
+}
+
     // ✅ If matched questions exist, block submission and show funny alert
     if (matchedQuestions.length > 0) {
         Swal.fire({

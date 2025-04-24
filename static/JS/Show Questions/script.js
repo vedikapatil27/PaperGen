@@ -270,7 +270,7 @@ function fetchSubjects() {
                     tabsContainer.appendChild(tabButton);
                 });
             } else {
-                tabsContainer.innerHTML = '<p>No subjects found. Please add subjects first.</p>';
+                tabsContainer.innerHTML = '<p>No subjects found. Please add questions first.</p>';
             }
         })
         .catch(error => console.error('Error fetching subjects:', error));
