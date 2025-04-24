@@ -1031,6 +1031,8 @@ def add_question():
             pi = request.form.get("pi", "").strip()
             marks = request.form.get("marks", "").strip()
             user_id = session['user_id']
+            
+            print(question_text, rbt_level, co, pi, marks, subject_id, user_id, image_path)
 
              # ✅ Save image if uploaded
             image_path = None
@@ -1064,7 +1066,7 @@ def add_question():
             return jsonify({"success": True, "message": "Question added successfully!"}), 200
 
         except Exception as e:
-            # print(f"Error: {e}")
+            print(f"Error: {e}")
             connection.rollback()
             return jsonify({"success": False, "message": "An error occurred while adding the question."}), 500
 

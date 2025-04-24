@@ -140,7 +140,7 @@ form.addEventListener('submit', (e) => {
            position: 'top-end',
            icon: 'warning',
            title: 'Invalid Marks!',
-           text: 'Marks must be between 1 and 17.',
+           text: 'Marks must be between 1 and 12.',
            toast: true,
            showConfirmButton: false,
            timer: 2000
