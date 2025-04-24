@@ -1032,7 +1032,6 @@ def add_question():
             marks = request.form.get("marks", "").strip()
             user_id = session['user_id']
             
-            print(question_text, rbt_level, co, pi, marks, subject_id, user_id, image_path)
 
              # ✅ Save image if uploaded
             image_path = None
@@ -1055,7 +1054,8 @@ def add_question():
                  return jsonify({"success": False, "message": "Subject doesn't exist!"}), 404  # Return a 404 status
             else:
                 subject_id = subject_result[0]
-
+            print(question_text, rbt_level, co, pi, marks, subject_id, user_id, image_path)
+            
             # Insert new question
             cursor.execute("""
                 INSERT INTO questions (question_text, rbt_level, co, pi, marks, subject_id, user_id, image_path) 
