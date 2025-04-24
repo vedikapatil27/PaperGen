@@ -510,8 +510,10 @@ def render_verify_email_page():
 @app.route('/verify-email/<token>')
 def verify_email(token):
     try:
+        print(token)
         data = jwt.decode(token, app.secret_key, algorithms=["HS256"])
         email = data['email']
+        print(email)
 
         connection = create_connection()
         cursor = connection.cursor()
