@@ -1023,9 +1023,9 @@ def add_question():
 
              # Extract data from form fields
             question_text = request.form.get("questionText", "").strip().lower()
-            branch = request.form.get("branch", "").strip().lower()
-            semester = request.form.get("semester", "").strip().lower()
-            subject = request.form.get("subject", "").strip().lower()
+            branch = request.form.get("branch", "").strip()
+            semester = request.form.get("semester", "").strip()
+            subject = request.form.get("subject", "").strip()
             rbt_level = request.form.get("rbtLevel", "").strip()
             co = request.form.get("co", "").strip()
             pi = request.form.get("pi", "").strip()
@@ -1043,10 +1043,8 @@ def add_question():
                    image_file.save(image_path)
 
             # Get or insert subject_id
-            cursor.execute("""
-                SELECT subject_id FROM subjects 
-                WHERE LOWER(subject_name) = %s AND LOWER(branch) = %s AND LOWER(semester) = %s
-            """, (subject, branch, semester))
+            cursor.execute("SELECT subject_id FROM subjects WHERE subject_name = %s AND branch = %s AND semester = %s",
+                (subject, branch, semester))
             
             subject_result = cursor.fetchone()
 
