@@ -1355,10 +1355,9 @@ def delete_question(question_id):
 
 @app.route('/generate_question_paper', methods=['GET', 'POST'])
 def generate_question_paper():
-    
-    if not check_access():  # If 'user_id' is not in session, redirect to login
-        flash("Please log in.", "warning")  # Flash a warning message to the user
-        return redirect(url_for('login'))  # Redirect to login page
+    if not check_access():
+        flash("Please log in.", "warning")
+        return redirect(url_for('login'))
 
     if request.method == 'POST':
         data = request.get_json()
@@ -1372,44 +1371,32 @@ def generate_question_paper():
         paper_code = data.get('paperCode')
         total_marks = data.get('totalMarks', 0)
 
-        # print(subject)
-
         connection = create_connection()
         if not connection:
-            return jsonify({
-                'status': 'error',
-                'message': 'Database connection failed'
-            }), 500
-        
-        try:
-            cursor = connection.cursor()
+            return jsonify({'status': 'error', 'message': 'Database connection failed'}), 500
 
+        cursor = connection.cursor()
+        try:
+            # Get subject_id from subject name
             cursor.execute("SELECT subject_id FROM subjects WHERE subject_name = %s", (subject,))
             subject_result = cursor.fetchone()
 
             if not subject_result:
-                return jsonify({
-                    'status': 'error',
-                    'message': 'Subject not found in database'
-                }), 404
+                return jsonify({'status': 'error', 'message': 'Subject not found in database'}), 404
 
             subject_id = subject_result[0]
 
+            # Get all questions for the subject
             cursor.execute("""
-                SELECT question_text, CAST(marks AS SIGNED), rbt_level, co, pi, image_path 
+                SELECT question_text, CAST(marks AS INTEGER), rbt_level, co, pi, image_path 
                 FROM questions 
                 WHERE subject_id = %s
-                ORDER BY RAND()
+                ORDER BY RANDOM()
             """, (subject_id,))
             all_questions = cursor.fetchall()
 
             if not all_questions:
-                return jsonify({
-                    'status': 'error',
-                    'message': 'No questions found for the selected subject'
-                }), 404
-
-            cursor.close()
+                return jsonify({'status': 'error', 'message': 'No questions found for the selected subject'}), 404
 
             selected_questions = []
             current_marks = 0
@@ -1424,7 +1411,7 @@ def generate_question_paper():
             if current_marks != total_marks:
                 flash("Could not select exact marks, closest possible paper generated.", 'warning')
 
-            # Create the Word document
+            # Create Word document
             doc = Document()
 
             header = doc.add_paragraph()
@@ -1435,64 +1422,50 @@ def generate_question_paper():
 
             table = doc.add_table(rows=2, cols=4)
             table.style = 'Table Grid'
-
-            cells = table.rows[0].cells
-            cells[0].text = examination
-            cells[1].text = f"Sem : {semester}"
-            cells[2].text = f"Subject : {subject}"
-            cells[3].text = f"Subject Code: {subject_code}"
-
-            cells = table.rows[1].cells
-            cells[0].text = f"Date : {exam_date}"
-            cells[1].text = f"Maximum Marks: {total_marks}"
-            cells[2].text = f"QP Code: {paper_code}"
-            cells[3].text = "All questions are compulsory."
+            table.rows[0].cells[0].text = examination
+            table.rows[0].cells[1].text = f"Sem : {semester}"
+            table.rows[0].cells[2].text = f"Subject : {subject}"
+            table.rows[0].cells[3].text = f"Subject Code: {subject_code}"
+            table.rows[1].cells[0].text = f"Date : {exam_date}"
+            table.rows[1].cells[1].text = f"Maximum Marks: {total_marks}"
+            table.rows[1].cells[2].text = f"QP Code: {paper_code}"
+            table.rows[1].cells[3].text = "All questions are compulsory."
 
             line_paragraph = doc.add_paragraph()
-            line_run = line_paragraph.add_run("_" * 95)
-            line_run.bold = True
             line_paragraph.alignment = 1
+            line_paragraph.add_run("_" * 95).bold = True
 
-            table = doc.add_table(rows=1, cols=7)
-            table.style = 'Table Grid'
+            question_table = doc.add_table(rows=1, cols=7)
+            question_table.style = 'Table Grid'
             headers = ["Q. No.", "Question", "Marks", "RBT Level", "CO", "PI", "Marks Secured"]
             for i, header_text in enumerate(headers):
-                table.rows[0].cells[i].text = header_text
+                question_table.rows[0].cells[i].text = header_text
 
             for i, (question_text, marks, rbt_level, co, pi, image_path) in enumerate(selected_questions, start=1):
-                row_cells = table.add_row().cells
+                row_cells = question_table.add_row().cells
                 row_cells[0].text = str(i)
                 row_cells[1].text = question_text
                 row_cells[2].text = str(marks)
                 row_cells[3].text = str(rbt_level)
                 row_cells[4].text = str(co)
                 row_cells[5].text = str(pi)
-                row_cells[6].text = ""  # Marks Secured
+                row_cells[6].text = ""
 
                 if image_path:
                     image_path = image_path.replace('\\', '/')
-
-                    # If the image_path doesn't already have 'static/uploads/', prepend it
                     if not image_path.startswith('static/uploads/'):
-                        image_path = 'static/uploads/' + image_path
+                        image_path = os.path.join('static', 'uploads', image_path)
 
-                    # Check if the image file exists
                     if os.path.exists(image_path):
-                        # Insert image into the document in the same table cell (below the question text)
                         try:
-                            # Add image to the same cell under the question
-                            image_cell = row_cells[1]
-                            # Create a new paragraph inside the cell
-                            image_paragraph = image_cell.add_paragraph()
+                            image_paragraph = row_cells[1].add_paragraph()
                             image_paragraph.alignment = WD_PARAGRAPH_ALIGNMENT.CENTER
-                            # Add image below the question text (adjust width as needed)
-                            image_paragraph.add_run().add_picture(image_path, width=Inches(1.0))  # You can adjust width here
+                            image_paragraph.add_run().add_picture(image_path, width=Inches(1.0))
                         except Exception as e:
                             print(f"Error adding image {image_path}: {e}")
                     else:
                         print(f"Image not found: {image_path}")
 
-            # Save the document to memory and send it as a response
             file_stream = BytesIO()
             doc.save(file_stream)
             file_stream.seek(0)
@@ -1500,15 +1473,13 @@ def generate_question_paper():
             return send_file(file_stream, as_attachment=True, download_name=f"{subject}.docx")
 
         except psycopg2.Error as e:
-            return jsonify({
-                'status': 'error',
-                'message': f"Database error: {e}"
-            }), 500
+            return jsonify({'status': 'error', 'message': f"Database error: {e}"}), 500
 
         finally:
+            if cursor:
+                cursor.close()
             if connection:
                 connection.close()
-
 
     return render_template('generate_question_paper.html')
 
