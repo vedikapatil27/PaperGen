@@ -520,14 +520,24 @@ def verify_email(token):
         cursor.close()
         connection.close()
 
-        flash("Email verified successfully! You can now log in.", "success")
+        return jsonify({
+            "success": True,
+            "message": "Email verified successfully!"
+        }), 200
+
     except jwt.ExpiredSignatureError:
-        flash("Verification link has expired. Please sign up again.", "danger")
+        return jsonify({
+            "success": False,
+            "message": "Verification link has expired. Please sign up again."
+        }), 400
+
     except jwt.InvalidTokenError:
-        flash("Invalid verification link.", "danger")
-
-    return redirect(url_for('login'))
-
+        return jsonify({
+            "success": False,
+            "message": "Invalid verification link."
+        }), 400
+        
+        
 @app.route('/login', methods=['GET', 'POST', 'OPTIONS'])
 def login():
     if request.method == 'GET':
@@ -1013,9 +1023,9 @@ def add_question():
 
              # Extract data from form fields
             question_text = request.form.get("questionText", "").strip().lower()
-            branch = request.form.get("branch", "").strip()
-            semester = request.form.get("semester", "").strip()
-            subject = request.form.get("subject", "").strip()
+            branch = request.form.get("branch", "").strip().lower()
+            semester = request.form.get("semester", "").strip().lower()
+            subject = request.form.get("subject", "").strip().lower()
             rbt_level = request.form.get("rbtLevel", "").strip()
             co = request.form.get("co", "").strip()
             pi = request.form.get("pi", "").strip()
@@ -1032,8 +1042,11 @@ def add_question():
                    image_file.save(image_path)
 
             # Get or insert subject_id
-            cursor.execute("SELECT subject_id FROM subjects WHERE subject_name = %s AND branch = %s AND semester = %s",
-                           (subject, branch, semester))
+            cursor.execute("""
+                SELECT subject_id FROM subjects 
+                WHERE LOWER(subject_name) = %s AND LOWER(branch) = %s AND LOWER(semester) = %s
+            """, (subject, branch, semester))
+            
             subject_result = cursor.fetchone()
 
             if not subject_result:
