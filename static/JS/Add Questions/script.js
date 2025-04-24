@@ -10,21 +10,22 @@ const mobileMatchedQuestion = document.getElementById('mobileMatchedQuestion');
 const matchedQuestionsInput = document.getElementById('matchedQuestionsInput');
 const fileInput = document.getElementById('question_image');
 const fileName = document.getElementById('file-name');
-const usernameElement = document.getElementById('username');
 const form = document.querySelector('form');
 
 
 // Fetch the username from sessionStorage
 const username = sessionStorage.getItem("username");
 
-// Check if the username is available
-if (username) {
-    // Set the username in the span with the id 'username'
-    usernameElement.textContent = username;
-} else {
-    // If username is not in sessionStorage, you can set a default value or redirect
-    usernameElement.textContent = "Guest";
-}
+setTimeout(() => {
+    if (username) {
+        // Set the username in the span with the id 'username'
+        document.getElementById("username").textContent = username;
+    } else {
+        // If username is not in sessionStorage, you can set a default value or redirect
+        document.getElementById("username").textContent = "Guest";
+    }
+}, 1200); // Timeout of 1200 ms
+
 
 // Store fetched questions
 let questions = [];

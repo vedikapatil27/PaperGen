@@ -10,13 +10,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const username = sessionStorage.getItem("username");
 
     // Check if the username is available
-    if (username) {
-        // Set the username in the span with the id 'username'
-        document.getElementById("username").textContent = username;
-    } else {
-        // If username is not in sessionStorage, you can set a default value or redirect
-        document.getElementById("username").textContent = "Guest";
-    }
+    setTimeout(() => {
+        if (username) {
+            // Set the username in the span with the id 'username'
+            document.getElementById("username").textContent = username;
+        } else {
+            // If username is not in sessionStorage, you can set a default value or redirect
+            document.getElementById("username").textContent = "Guest";
+        }
+    }, 1200); // Timeout of 1200 ms
+    
     setupEventListeners();
     loadUserData();
 });
