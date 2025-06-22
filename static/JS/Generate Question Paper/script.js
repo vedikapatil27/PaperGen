@@ -91,9 +91,7 @@ document.getElementById('questionPaperForm').addEventListener('submit', (e) => {
 
     // 3. Total Marks validation (1 to 100)
     const totalMarks = parseInt(document.getElementById('total_marks').value);
-    alert("this is alert"+totalMarks)
-    if (isNaN(totalMarks) || totalMarks <= 0 || totalMarks > 16) {
-         alert("Inside if"+totalMarks)
+    if (isNaN(totalMarks) || totalMarks <= 0 || totalMarks > 100) {
         isValid = false;
         highlightInvalidField(document.getElementById('total_marks'));
         showNotification('Total marks must be between 1 and 100', 'error');
